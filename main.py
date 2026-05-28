@@ -44,10 +44,10 @@ def step4_train_knn(feature_result):
     print("步骤 4/7: KNN 模型训练与超参数调优")
     print("=" * 60)
     from src.model_training import train_knn
-    model, grid_search = train_knn(
+    model, grid_search, best_params, cv_f1 = train_knn(
         feature_result["X_train"], feature_result["y_train"]
     )
-    return model, grid_search
+    return model, grid_search, best_params, cv_f1
 
 
 def step5_evaluate(model, feature_result):
@@ -72,7 +72,7 @@ def step6_predict(model, feature_result):
     return result_df
 
 
-def step7_generate_report(metrics):
+def step7_generate_report(metrics, prefix="experiment"):
     print("\n" + "=" * 60)
     print("步骤 7/7: 生成实验手册")
     print("=" * 60)
@@ -82,7 +82,7 @@ def step7_generate_report(metrics):
         if f.endswith(".png") and not f.endswith("confusion_matrix.png")
         and not f.endswith("roc_curve.png")
     ]
-    report_path = create_report(metrics, eda_images)
+    report_path = create_report(metrics, eda_images, prefix=prefix)
     return report_path
 
 
@@ -95,10 +95,12 @@ def main():
         df_train, df_predict = step1_load_data()
         step2_eda(df_train, df_predict)
         feature_result = step3_feature_engineering(df_train, df_predict)
-        model, grid_search = step4_train_knn(feature_result)
+        model, grid_search, best_params, cv_f1 = step4_train_knn(feature_result)
         report, y_pred, y_prob = step5_evaluate(model, feature_result)
         result_df = step6_predict(model, feature_result)
-        report_path = step7_generate_report(report)
+        report["best_params"] = best_params
+        report["cv_f1"] = cv_f1
+        report_path = step7_generate_report(report, prefix="experiment")
 
         print("\n" + "=" * 60)
         print("全流程完成！")

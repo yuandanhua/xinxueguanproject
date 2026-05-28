@@ -38,7 +38,7 @@ def train_knn(X_train, y_train, cv=5, n_jobs=-1):
     joblib.dump(grid_search.best_estimator_, "output/knn_model.joblib")
     print("[KNN训练] 最佳模型已保存: output/knn_model.joblib")
 
-    return grid_search.best_estimator_, grid_search
+    return grid_search.best_estimator_, grid_search, grid_search.best_params_, grid_search.best_score_
 
 
 def evaluate_cv(X_train, y_train, best_params, cv=5):
