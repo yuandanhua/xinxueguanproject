@@ -14,22 +14,14 @@ def _safe_add_heading(doc, text, level=1):
     style_names = {0: "Title", 1: "Heading 1", 2: "Heading 2", 3: "Heading 3"}
     style_name = style_names.get(level, "Normal")
     try:
+        doc.styles[style_name]
         return doc.add_heading(text, level=level)
     except KeyError:
         p = doc.add_paragraph()
         run = p.add_run(text)
-        if level == 0:
-            run.bold = True
-            run.font.size = Pt(22)
-        elif level == 1:
-            run.bold = True
-            run.font.size = Pt(16)
-        elif level == 2:
-            run.bold = True
-            run.font.size = Pt(14)
-        else:
-            run.bold = True
-            run.font.size = Pt(12)
+        sizes = {0: 22, 1: 16, 2: 14, 3: 12}
+        run.bold = True
+        run.font.size = Pt(sizes.get(level, 12))
         return p
 
 
@@ -51,7 +43,13 @@ def create_report(metrics, eda_images=None, prefix="experiment"):
 
     if os.path.exists(TEMPLATE_PATH):
         doc = Document(TEMPLATE_PATH)
-        print(f"[报告] 已加载模板: {TEMPLATE_PATH}")
+        body = doc.element.body
+        for child in list(body):
+            tag = child.tag.split('}')[-1] if '}' in child.tag else child.tag
+            if tag == 'sectPr':
+                continue
+            body.remove(child)
+        print(f"[报告] 已加载模板并清空正文: {TEMPLATE_PATH}")
     else:
         doc = Document()
         print(f"[报告] 模板不存在，使用默认样式")
